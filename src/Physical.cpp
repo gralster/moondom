@@ -1,4 +1,5 @@
 #include "main.hpp"
+//functions for objects that exist in the game and can be interacted with + interaction functions
 
 /////////////////////////////////////////////////////////////
 //constructor
@@ -43,7 +44,7 @@ Actor::Actor(const char* name, int symbol, TCODColor colour,const char* descript
 };
 
 
-void Actor::pickUp(Physical *object)
+void Actor::pickUp(Physical *object) //pick up stuff (.)
 {	
 	
 	if (object->i == this->i && object->j == this->j)
@@ -65,7 +66,7 @@ void Actor::pickUp(Physical *object)
 };
 
 //drop an item by inventory index
-void Actor::drop(int index)
+void Actor::drop(int index) //drop stuff (d)
 {	
 	if (this->nCarry == 0)
 	{
@@ -96,7 +97,7 @@ void Actor::drop(int index)
 
 
 
-int Actor::checkInventory(int index)
+int Actor::checkInventory(int index) // look at what you are carrying (i)
 {
 	if (this->nCarry == 0)
 	{
@@ -151,6 +152,7 @@ void Actor::displayInventory()
 	}
 };
 
+// player movement functions // facing direction is repped by a number 0 to 8 clockwise with 0 as north
 void Actor::turnr()
 {
 	this->facing = ( this->facing +1 )%8;
@@ -188,6 +190,7 @@ void Actor::moveBackward()
 	else {printf("%i\n",this->facing);}
 }
 
+//figure out what the player can see, depending on where they are facing
 bool Actor::isLookingAt(int i, int j)
 {
 	for (int l = -22 ; l<22;l+=1)
@@ -205,6 +208,8 @@ bool Actor::isLookingAt(int i, int j)
 
 	else {return true;}
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Ai::Ai(const char* name, int symbol, TCODColor colour, const char* description, int hp, int ap) : Actor(name, symbol, colour, description, hp, ap)
 {;};

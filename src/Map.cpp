@@ -1,5 +1,8 @@
 #include "main.hpp"
-/////////////////////////////////////////////////////////////
+// functions for the background and objectss
+//split into individual Tiles (1) , and the map as a whole (2)
+
+//(1)//////////////////////////////////////////////////////////////////////////////////////////////////////////
 //constructor
 Tile::Tile( bool passable, bool translucent, int height, TCODColor colour, const char* type) : passable(passable), translucent(translucent), height(height),colour(colour),type(type)
 {
@@ -10,20 +13,20 @@ Tile::Tile( bool passable, bool translucent, int height, TCODColor colour, const
 	//TCODConsole::root->setCharBackground(this->colour);
 //};
 
-bool Tile::canWalk()
+bool Tile::canWalk() // can the player walk here?
 {
 	return (this->passable);
 	
 };
 
-bool Tile::isSeeThrough()
+bool Tile::isSeeThrough() // can the player see through this?
 {
 	//printf("%d",this->translucent);
 	return this->translucent;
 	//return false;
 };
 
-bool Tile::isWall()
+bool Tile::isWall() //is this a wall?
 {
 	if (strcmp(this->type, "wall") == 0) {return true;}
 	else{return false;}
@@ -38,10 +41,10 @@ Ground::Ground() : Tile(true, true, 0,TCODColor::desaturatedGreen,"ground")
 };
 
 
-/////////////////////////////////////////////////////////////
+//(2)///////////////////////////////////////////////////////////
 
 //constructor
-Map::Map(int width, int height): width(width), height(height)
+Map::Map(int width, int height): width(width), height(height) // creates initial map, creates  and defines all ais and objects
 {
 	nObjects = 0;
 	nais =0;
@@ -76,74 +79,32 @@ Map::Map(int width, int height): width(width), height(height)
 	this->setWall(5,5);
 };
 
-void Map::placePlayer(Actor *player)
-{
-	this->players[0] = player;
-}
 
-void Map::placeAI(Ai *ai)
-{
-	this->ais[this->nais] = ai;
-	this->nais += 1;
-}
-
-//add objects to the map
-void Map::placeObject(Physical *object)
-{ 
-	this->objects[this->nObjects] = object;
-	this->nObjects += 1;
-	//printf("%s,%s",this->objects[0]->name,this->objects[1]->name);
-};
-
-bool Map::isSeeThrough(int i, int j)
+//find tile properties
+bool Map::isSeeThrough(int i, int j) 
 {
 	return this->tiles[i][j]->isSeeThrough();
 };
-
 bool Map::canWalk(int i, int j)
 {
 	return this->tiles[i][j]->canWalk();
 }
-
 void Map::setWall(int i, int j)
 {
 	this->tiles[i][j] = NULL;
 	this->tiles[i][j] = new Wall();
 }
-
-void Map::removeObject(Physical *object)
-{
-	for (int item = 0; item < this->nObjects; item++)
-	{
-		if (object == this->objects[item])
-		{
-			this->objects[item] = NULL;
-			if (item != this->nObjects) 
-			{
-				for (int index = item+1; index < this->nObjects; index++)
-				{
-					this->objects[index-1] = this->objects[index];
-				}
-			}
-			this->nObjects -= 1;
-		}
-	}
-};
-
+// check tile properties for viewing
 bool Map::isOffMap(int i, int j)
 {
 	if ((i < 0) || (i > this-> width-1) || (j < 0) || (j > this->height-1)) {return true;}
 	else {return false;}
 }
-
 bool Map::tooFarAway(double distance)
 {
 	if (distance > 30) {return true;}
 	else {return false;}
 }
-
-
-
 bool Map::isInFOV(Actor *object, int i, int j)
 {
 	int di = i-object->i;// -i ;
@@ -174,13 +135,50 @@ bool Map::isInFOV(Actor *object, int i, int j)
 	//return true;
 }
 
+//object placement
+void Map::placePlayer(Actor *player)
+{
+	this->players[0] = player;
+}
+void Map::placeAI(Ai *ai)
+{
+	this->ais[this->nais] = ai;
+	this->nais += 1;
+}
+void Map::placeObject(Physical *object)
+{ 
+	this->objects[this->nObjects] = object;
+	this->nObjects += 1;
+	//printf("%s,%s",this->objects[0]->name,this->objects[1]->name);
+};
+//object unplacement (for when you pick something up)
+void Map::removeObject(Physical *object)
+{
+	for (int item = 0; item < this->nObjects; item++)
+	{
+		if (object == this->objects[item])
+		{
+			this->objects[item] = NULL;
+			if (item != this->nObjects) 
+			{
+				for (int index = item+1; index < this->nObjects; index++)
+				{
+					this->objects[index-1] = this->objects[index];
+				}
+			}
+			this->nObjects -= 1;
+		}
+	}
+};
+
+// initially you could wonder forever - needs to updated to delete old map as it caused a memory problem crash
+//no longer in use
 bool Map::playerIsNearEdge()
 {
 	if (((width - players[0]->i) < 5) or ((height - players[0]->j) < 5) or ((players[0]->i) < 5) or ((players[0]->j) < 5))
 		{ return true;}
 	else {return false;}
 }
-
 void Map::moveMap()
 {
 	//this->origini += 1;
@@ -285,7 +283,7 @@ void Map::moveMap()
 	}
 }
 
-//print the map to the terminal
+//print the map if the player can see it, leave black if not
 void Map::render()
 {
 	TCODConsole::root->clear();

@@ -1,6 +1,7 @@
 #include "main.hpp"
+// functions relating to the game engine, player input and actions etc
 
-Engine::Engine(int width, int height) 
+Engine::Engine(int width, int height) //initialise game
 {	
 	TCODConsole::initRoot(width,height,"MOONDOM",false);
 	nMaps=0;
@@ -17,25 +18,25 @@ Engine::Engine(int width, int height)
 	
 }
 
-void Engine::aiturn() //WORK ON THIS NEXT
+void Engine::aiturn() // simulate input for ais each turn // WORK ON THIS NEXT
 {
 	for (int index = 0; index < this->areas[currentArea]->nais; index++)
 	{this->areas[currentArea]->ais[index]->aiturn();}
 }
 
-void Engine::addMap(Map *area)
+void Engine::addMap(Map *area) // create a new map
 {
 	this->areas[nMaps]=area;
 	this->nMaps += 1;
 }
 
-void Engine::moveArea()
+void Engine::moveArea() // eventually let player move to new map
 {
 	;
 }
 
-//pick up an item passed
-void Engine::transferObject(Map *area, Actor *actor)
+
+void Engine::transferObject(Map *area, Actor *actor) //pick up an item 
 {
 	if (area->nObjects > 0)
 	{
@@ -59,7 +60,7 @@ void Engine::transferObject(Map *area, Actor *actor)
 	}
 }
 
-void Engine::transferObject(Actor *actor, Map *area)
+void Engine::transferObject(Actor *actor, Map *area) // drop an item
 {
 	printf("What do you want to drop?\n");	
 	actor->displayInventory();
@@ -74,7 +75,7 @@ void Engine::transferObject(Actor *actor, Map *area)
 }
 
 
-void Engine::look()
+void Engine::look() //press l to find something to look at
 {
 	this->selector = new Physical("selector",'X', TCODColor::white,"");
 	selector->setPlace(this->players[0]->i,this->players[0]->j);
@@ -83,18 +84,18 @@ void Engine::look()
 }
 
 
-void Engine::backToNormal()
+void Engine::backToNormal() // leave menu mode
 {
 	 this->gameMode = "normal";
 }
 
-void Engine::describe(Physical *object)
+void Engine::describe(Physical *object) // print out the results of looking at something
 {
 	printf("You see a %s. ",object->name);
 	printf("It is %s\n", object->description);
 }
 
-void Engine::select(int i, int j)
+void Engine::select(int i, int j) //handle player pressing enter while looking // describe object //interact ai // you cant see
 {
 	if (this->players[0]->isLookingAt(i,j))
 	{
@@ -116,7 +117,7 @@ void Engine::select(int i, int j)
 	else{printf("you can't see over there.\n"); this->backToNormal();}
 }
 
-void Engine::interactAi(Ai *ai)
+void Engine::interactAi(Ai *ai) // move to talking mode
 {
 	this->describe(ai);
 	this->gameMode = "talking";
@@ -125,17 +126,17 @@ void Engine::interactAi(Ai *ai)
 
 
 
-void Engine::convo(Ai *selected)
+void Engine::convo(Ai *selected) // AI says hello // needs work
 {
 	const char *prompt = "";
 	printf("%s: ",this->selected->name);
 	printf("%s\n",this->selected->saySomething(prompt));
 	printf("%s: ",this->players[0]->name);
 	const char *input = this->getStringInput();
-	if(strcmp(input, "bye") ==0) {this->backToNormal();}
+	if(strcmp(input, "bye") ==0) {this->backToNormal();} // player can leave convo by saying "bye"
 }
 
-char const* Engine::getStringInput()
+char const* Engine::getStringInput() // handle player writing words into command line
 {
 	std::string strin ;
 	std::getline(std::cin,strin);
@@ -148,7 +149,7 @@ char const* Engine::getStringInput()
 	return str;
 }
 
-int Engine::getIntInput()
+int Engine::getIntInput() // handle player writing numbers into command line
 {
 	bool waiting = true;
 	TCODConsole::flush();
@@ -173,7 +174,7 @@ int Engine::getIntInput()
 }
 
 
-void Engine::getNormalInput()
+void Engine::getNormalInput() // handle walking around key inputs
 {
 	TCOD_key_t key;
 	TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS, &key, NULL);
@@ -195,16 +196,16 @@ void Engine::getNormalInput()
 	
 	switch(key.c)
 	{
-		case 46 : this->transferObject(this->areas[currentArea],this->players[0]); break;
-		case 105 : this->players[0]->displayInventory(); break;
-		case 100 : this->transferObject(this->players[0],this->areas[currentArea]); break;	//DROPPING DOES NOT WORK
-		case 108 : this->look(); break;
+		case 46 : this->transferObject(this->areas[currentArea],this->players[0]); break; //.
+		case 105 : this->players[0]->displayInventory(); break; // i
+		case 100 : this->transferObject(this->players[0],this->areas[currentArea]); break;	//d
+		case 108 : this->look(); break; //l
 		default : break;
 	}
 	//}
 };
 
-void Engine::getLookInput()
+void Engine::getLookInput() // handle moving look x when player is selecting what to examine
 {
 	TCOD_key_t key;
 	TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS, &key, NULL);
@@ -221,17 +222,16 @@ void Engine::getLookInput()
 	}
 }
 
-void Engine::menu()
+void Engine::menu() // print menu output and enter menu mode
 {
 	printf("Menu:\n");
 	printf("Enter		: quit\n");
 	printf("Esc		: back to game\n");
-	printf("s		: see controls\n");
 	
 	this->gameMode = "menu";
 }
 
-void Engine::getMenuInput()
+void Engine::getMenuInput() // handle menu input
 {
 	TCOD_key_t key;
 	TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS, &key, NULL);
@@ -244,15 +244,8 @@ void Engine::getMenuInput()
 	}
 }
 
-void Engine::renderMenu()
-{
-	printf("Menu:\n");
-	printf("Enter		: quit\n");
-	printf("Esc		: back to game\n");
-	printf("s		: see controls\n");
-}
 
-void Engine::render()
+void Engine::render() // update screen output of game
 {
 	areas[currentArea]->render();
 	gui->render(players[0]);
